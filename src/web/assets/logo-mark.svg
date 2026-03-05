@@ -1,0 +1,12 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="SyncHub mark">
+  <g fill="none" stroke="#ffffff" stroke-width="4.1" stroke-linecap="round">
+    <path d="M14 72A46 46 0 0 1 50 16"/>
+    <path d="M73 18A46 46 0 0 1 106 70"/>
+    <path d="M97 78A46 46 0 0 1 44 102"/>
+  </g>
+  <circle cx="60" cy="14" r="7.7" fill="#ffffff"/>
+  <circle cx="18" cy="70" r="7.7" fill="#ffffff"/>
+  <circle cx="102" cy="70" r="7.7" fill="#ffffff"/>
+</svg>
+
+

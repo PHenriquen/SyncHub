@@ -3,3 +3,6 @@ node_modules/
 baileys_auth/
 .DS_Store
 npm-debug.log
+data/
+.runtime/
+.tools/

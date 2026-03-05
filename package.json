@@ -1,9 +1,13 @@
 {
-  "name": "zapap",
+  "name": "synchub",
   "version": "1.0.0",
+  "description": "SyncHub 2026 - comunicacao unificada, priorizacao e automacao inteligente",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:bridge": "node index.js",
+    "start:core": "node src/main.js",
+    "demo:core": "node src/demo.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
