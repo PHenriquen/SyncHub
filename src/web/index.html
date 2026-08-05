@@ -1,0 +1,266 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SyncHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-radial"></div>
+
+  <section id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <div class="brand-hero" aria-label="SyncHub">
+        <span class="brand-hero-text sync">SYNC</span>
+        <img class="brand-hero-mark" src="/app/assets/logo-mark.svg" alt="" aria-hidden="true">
+        <span class="brand-hero-text hub">HUB</span>
+      </div>
+      <h1>Central de Comunicação</h1>
+      <p class="auth-desc">Entre para abrir seu painel principal com inbox unificada, foco, tarefas e automações.</p>
+      <div class="auth-switch">
+        <button id="mode-login" type="button" class="switch-btn active">Login</button>
+        <button id="mode-register" type="button" class="switch-btn">Cadastro</button>
+      </div>
+      <form id="auth-form" class="auth-form">
+        <label id="field-name" class="field hidden">
+          <span>Nome</span>
+          <input id="auth-name" type="text" placeholder="Seu nome">
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input id="auth-email" type="email" required placeholder="voce@empresa.com">
+        </label>
+        <label class="field">
+          <span>Senha</span>
+          <input id="auth-password" type="password" required placeholder="Mínimo 8 caracteres">
+        </label>
+        <button id="auth-submit" class="btn primary" type="submit">Entrar</button>
+      </form>
+      <p id="auth-feedback" class="feedback"></p>
+    </div>
+  </section>
+
+  <div id="app-root" class="app-root hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-lockup">
+          <img class="brand-mark" src="/app/assets/logo-mark.svg" alt="SyncHub mark">
+          <div>
+            <p class="eyebrow">SyncHub</p>
+            <h2>Central de Controle</h2>
+          </div>
+        </div>
+      </div>
+      <nav id="view-nav" class="nav-list">
+        <button class="nav-btn active" data-view="dashboard">Visão Hoje</button>
+        <button class="nav-btn" data-view="inbox">Inbox Unificada</button>
+        <button class="nav-btn" data-view="tasks">Tarefas</button>
+        <button class="nav-btn" data-view="events">Eventos</button>
+        <button class="nav-btn" data-view="notes">Notas</button>
+        <button class="nav-btn" data-view="automations">Automações</button>
+        <button class="nav-btn" data-view="integrations">Integrações</button>
+        <button class="nav-btn" data-view="modules">Módulos</button>
+        <button class="nav-btn" data-view="settings">Configurações</button>
+      </nav>
+      <div class="sidebar-foot">
+        <p id="session-user">-</p>
+        <button id="logout-btn" class="btn danger" type="button">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="search-wrap">
+          <input id="global-search" type="search" placeholder="Buscar em mensagens e tarefas...">
+        </div>
+        <div class="top-actions">
+          <button id="quick-new-task" class="btn ghost" type="button">Nova tarefa</button>
+          <button id="quick-new-rule" class="btn ghost" type="button">Nova regra</button>
+          <label class="focus-toggle">
+            <input id="focus-toggle" type="checkbox">
+            <span>Modo foco</span>
+          </label>
+          <button id="refresh-btn" class="btn primary" type="button">Atualizar</button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view active">
+        <div class="view-head">
+          <h3>Visão Hoje</h3>
+          <p>Resumo operacional do dia e prioridades imediatas.</p>
+        </div>
+        <div id="kpi-grid" class="kpi-grid"></div>
+        <div class="dashboard-grid">
+          <article class="panel">
+            <h4>Resumo inteligente</h4>
+            <ul id="ai-summary" class="plain-list"></ul>
+          </article>
+          <article class="panel">
+            <h4>Timeline do Dia</h4>
+            <ul id="timeline-list" class="plain-list"></ul>
+          </article>
+          <article class="panel">
+            <h4>Status de Integrações</h4>
+            <ul id="mini-integrations" class="plain-list"></ul>
+          </article>
+          <article class="panel">
+            <h4>Relatório Semanal</h4>
+            <ul id="weekly-insights" class="plain-list"></ul>
+          </article>
+          <article class="panel">
+            <h4>Distribuição de Prioridades</h4>
+            <div id="priority-bars" class="chart-bars"></div>
+          </article>
+          <article class="panel">
+            <h4>Distribuição por Origem</h4>
+            <div id="source-bars" class="chart-bars"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-inbox" class="view">
+        <div class="view-head">
+          <h3>Inbox Unificada</h3>
+          <p>Fila priorizada com ações rápidas.</p>
+        </div>
+        <form id="message-form" class="message-form">
+          <input id="message-sender" type="text" required placeholder="Remetente">
+          <input id="message-channel" type="text" placeholder="Canal (ex.: clientes)">
+          <select id="message-source">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="telegram">Telegram</option>
+            <option value="discord">Discord</option>
+            <option value="gmail">Gmail</option>
+            <option value="slack">Slack</option>
+            <option value="teams">Teams</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="instagram">Instagram</option>
+          </select>
+          <input id="message-role" type="text" placeholder="Perfil (cliente, gestor...)">
+          <input id="message-text" type="text" required placeholder="Escreva a mensagem">
+          <button class="btn primary" type="submit">Adicionar mensagem</button>
+        </form>
+        <div class="inline-actions">
+          <button id="seed-sample-btn" class="btn ghost" type="button">Carregar exemplo</button>
+        </div>
+        <div id="inbox-buckets" class="bucket-filters"></div>
+        <article class="panel context-panel">
+          <h4>Contexto do contato</h4>
+          <div id="contact-context" class="context-body">
+            <p class="meta">Selecione "Contexto" em uma mensagem para abrir detalhes.</p>
+          </div>
+        </article>
+        <div id="inbox-list" class="list-stack"></div>
+      </section>
+
+      <section id="view-tasks" class="view">
+        <div class="view-head">
+          <h3>Tarefas</h3>
+          <p>Acompanhe entregas, prioridades e conclusões.</p>
+        </div>
+        <form id="task-form" class="inline-form">
+          <input id="task-title" type="text" required placeholder="Nova tarefa">
+          <input id="task-due-date" type="date">
+          <button class="btn primary" type="submit">Criar</button>
+        </form>
+        <div id="tasks-list" class="list-stack"></div>
+      </section>
+
+      <section id="view-events" class="view">
+        <div class="view-head">
+          <h3>Eventos</h3>
+          <p>Compromissos convertidos diretamente da comunicação.</p>
+        </div>
+        <div id="events-list" class="list-stack"></div>
+      </section>
+
+      <section id="view-notes" class="view">
+        <div class="view-head">
+          <h3>Notas</h3>
+          <p>Anotações geradas a partir de mensagens e contexto.</p>
+        </div>
+        <div id="notes-list" class="list-stack"></div>
+      </section>
+
+      <section id="view-automations" class="view">
+        <div class="view-head">
+          <h3>Automações</h3>
+          <p>Regras para transformar mensagens em fluxo automático.</p>
+        </div>
+        <form id="rule-form" class="rule-form">
+          <input id="rule-name" type="text" required placeholder="Nome da regra">
+          <input id="rule-keywords" type="text" placeholder="palavra1,palavra2">
+          <select id="rule-source">
+            <option value="">Qualquer origem</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="telegram">Telegram</option>
+            <option value="discord">Discord</option>
+            <option value="gmail">Gmail</option>
+            <option value="slack">Slack</option>
+            <option value="teams">Teams</option>
+          </select>
+          <input id="rule-priority" type="number" min="0" max="100" value="60">
+          <button class="btn primary" type="submit">Criar regra</button>
+        </form>
+        <div id="rules-list" class="list-stack"></div>
+      </section>
+
+      <section id="view-integrations" class="view">
+        <div class="view-head">
+          <h3>Integrações</h3>
+          <p>Central de conexões entre apps.</p>
+        </div>
+        <div id="integrations-grid" class="integration-grid"></div>
+      </section>
+
+      <section id="view-modules" class="view">
+        <div class="view-head">
+          <h3>Módulos</h3>
+          <p>Ative contexto por perfil de uso.</p>
+        </div>
+        <div id="modules-grid" class="module-grid"></div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="view-head">
+          <h3>Configurações</h3>
+          <p>Sessão, foco e dados de conta.</p>
+        </div>
+        <article class="panel settings-panel">
+          <p><strong>Usuário:</strong> <span id="settings-user">-</span></p>
+          <p><strong>Email:</strong> <span id="settings-email">-</span></p>
+          <p><strong>Sessão expira em:</strong> <span id="settings-expire">-</span></p>
+          <div class="focus-settings">
+            <label for="focus-threshold">Limiar do modo foco</label>
+            <input id="focus-threshold" type="range" min="1" max="100" value="70">
+            <p id="focus-threshold-label">70</p>
+            <button id="save-focus" class="btn primary" type="button">Salvar foco</button>
+            <label for="privacy-mode">Modo privacidade</label>
+            <select id="privacy-mode">
+              <option value="balanced">Balanceado</option>
+              <option value="strict">Restrito</option>
+            </select>
+            <button id="save-privacy" class="btn ghost" type="button">Salvar privacidade</button>
+            <label for="theme-mode">Tema</label>
+            <select id="theme-mode">
+              <option value="auto">Auto (horário)</option>
+              <option value="light">Claro</option>
+              <option value="dark">Escuro</option>
+            </select>
+            <button id="save-theme" class="btn ghost" type="button">Salvar tema</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app/app.js"></script>
+</body>
+</html>
+
+
