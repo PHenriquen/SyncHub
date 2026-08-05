@@ -1,0 +1,73 @@
+@media (max-width: 1050px) {
+  .app-shell {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    align-items: center;
+    padding-inline: 12px;
+  }
+
+  .brand-copy,
+  .workspace-switcher,
+  .nav-label,
+  .nav-link span,
+  .nav-badge,
+  .user-chip div,
+  .logout-button {
+    display: none;
+  }
+
+  .nav-link {
+    justify-content: center;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-shell {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .topbar {
+    padding: 0 18px;
+  }
+
+  .page-content {
+    padding: 26px 18px 44px;
+  }
+
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .network-status,
+  .hub-signal { display: none; }
+
+  .dashboard-heading { min-height: auto; padding: 24px; }
+
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .project-row {
+    grid-template-columns: 1fr 0.7fr;
+  }
+
+  .project-row .health-bar,
+  .health-value {
+    display: none;
+  }
+}

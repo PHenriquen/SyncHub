@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum ProjectVisibility {
+  PRIVATE
+  WORKSPACE
+}
+
+enum TaskStatus {
+  BACKLOG
+  READY
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  DONE
+  CANCELED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ActivityType {
+  WORKSPACE_CREATED
+  PROJECT_CREATED
+  TASK_CREATED
+  TASK_STATUS_CHANGED
+  COMMENT_CREATED
+  REPOSITORY_CONNECTED
+  COMMIT_RECEIVED
+  PULL_REQUEST_OPENED
+  PULL_REQUEST_MERGED
+  CI_FAILED
+  RELEASE_PUBLISHED
+  SYNCHRONIZATION_STARTED
+  SYNCHRONIZATION_COMPLETED
+  SYNCHRONIZATION_FAILED
+}
+
+enum SyncRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+model User {
+  id            String            @id @default(uuid())
+  name          String
+  email         String            @unique
+  passwordHash  String
+  avatarUrl     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  memberships   WorkspaceMember[]
+  refreshTokens RefreshToken[]
+  assignedTasks Task[]            @relation("TaskAssignee")
+  createdTasks  Task[]            @relation("TaskCreator")
+  comments      TaskComment[]
+  activities    ActivityEvent[]   @relation("ActivityActor")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model Workspace {
+  id           String             @id @default(uuid())
+  name         String
+  slug         String             @unique
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  memberships  WorkspaceMember[]
+  projects     Project[]
+  repositories GitHubRepository[]
+  activities   ActivityEvent[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(uuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model Project {
+  id          String            @id @default(uuid())
+  workspaceId String
+  name        String
+  key         String
+  description String?
+  visibility  ProjectVisibility @default(WORKSPACE)
+  nextTaskNumber Int              @default(1)
+  archivedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  repositories GitHubRepository[]
+  activities  ActivityEvent[]
+
+  @@unique([workspaceId, key])
+  @@index([workspaceId, archivedAt])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  projectId   String
+  number      Int
+  title       String
+  description String?
+  status      TaskStatus   @default(BACKLOG)
+  priority    TaskPriority @default(MEDIUM)
+  assigneeId  String?
+  creatorId   String
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User?        @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  creator     User         @relation("TaskCreator", fields: [creatorId], references: [id])
+  comments    TaskComment[]
+  githubLinks GitHubLink[]
+  activities  ActivityEvent[]
+
+  @@unique([projectId, number])
+  @@index([projectId, status])
+  @@index([assigneeId, status])
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([taskId, createdAt])
+}
+
+model GitHubRepository {
+  id             String    @id @default(uuid())
+  workspaceId    String
+  projectId      String?
+  installationId BigInt
+  repositoryId   BigInt    @unique
+  owner          String
+  name           String
+  fullName       String    @unique
+  defaultBranch  String
+  private        Boolean
+  connectedAt    DateTime  @default(now())
+  lastSyncedAt   DateTime?
+  lastError      String?
+  syncEnabled    Boolean   @default(true)
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project        Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  links          GitHubLink[]
+  syncRuns       SyncRun[]
+
+  @@index([workspaceId])
+}
+
+model SyncRun {
+  id             String             @id @default(uuid())
+  repositoryId   String
+  status         SyncRunStatus      @default(RUNNING)
+  trigger        String
+  eventName      String?
+  deliveryId     String?
+  receivedItems  Int                @default(0)
+  linkedItems    Int                @default(0)
+  message        String?
+  startedAt      DateTime           @default(now())
+  completedAt    DateTime?
+  repository     GitHubRepository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([repositoryId, startedAt])
+  @@index([status, startedAt])
+}
+
+model GitHubLink {
+  id           String           @id @default(uuid())
+  taskId       String
+  repositoryId String
+  type         String
+  externalId   String
+  number       Int?
+  url          String
+  state        String?
+  metadata     Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  task         Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  repository   GitHubRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([repositoryId, type, externalId])
+  @@index([taskId])
+}
+
+model ActivityEvent {
+  id          String       @id @default(uuid())
+  workspaceId String
+  projectId   String?
+  taskId      String?
+  actorId     String?
+  type        ActivityType
+  summary     String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task        Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actor       User?        @relation("ActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([taskId, createdAt])
+}
+
+model GitHubWebhookDelivery {
+  id          String   @id @default(uuid())
+  deliveryId  String   @unique
+  eventName   String
+  payloadHash String
+  receivedAt  DateTime @default(now())
+
+  @@index([eventName, receivedAt])
+}

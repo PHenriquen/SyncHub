@@ -1,0 +1,1 @@
+& "$PSScriptRoot/oneclick.ps1"

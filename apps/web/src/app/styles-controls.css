@@ -1,0 +1,209 @@
+.section-toolbar,
+.project-detail-heading {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.section-toolbar > span,
+.settings-note,
+.inline-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.inline-form {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 18px;
+  padding: 20px;
+}
+
+.inline-form label {
+  color: var(--muted);
+  display: grid;
+  font-size: 11px;
+  gap: 7px;
+}
+
+.inline-form input,
+.inline-form textarea,
+.inline-form select,
+.task-row select {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  padding: 10px 11px;
+}
+
+.inline-form input:focus,
+.inline-form textarea:focus,
+.inline-form select:focus,
+.task-row select:focus {
+  border-color: rgba(139, 92, 246, 0.55);
+}
+
+.form-wide {
+  grid-column: 1 / -1;
+}
+
+.inline-form .primary-action {
+  justify-self: start;
+}
+
+.primary-action:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.secondary-action {
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 11px;
+  padding: 8px 11px;
+}
+
+.state-panel {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  margin-top: 22px;
+  padding: 22px;
+}
+
+.state-panel p {
+  color: var(--muted);
+  font-size: 11px;
+  margin: 0;
+}
+
+.state-error {
+  border-color: rgba(242, 125, 125, 0.3);
+}
+
+.state-spinner {
+  animation: state-spin 800ms linear infinite;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  border-top-color: var(--violet);
+  height: 20px;
+  width: 20px;
+}
+
+@keyframes state-spin {
+  to { transform: rotate(360deg); }
+}
+
+.project-detail-heading > div {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.project-detail-heading strong {
+  display: block;
+  font-size: 16px;
+}
+
+.project-detail-heading p {
+  color: var(--muted);
+  font-size: 11px;
+  margin: 5px 0 0;
+}
+
+.project-symbol.large {
+  font-size: 13px;
+  height: 44px;
+  width: 44px;
+}
+
+.task-table {
+  display: grid;
+  overflow: hidden;
+}
+
+.task-row {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 76px minmax(180px, 1fr) 80px 140px;
+  padding: 14px 18px;
+}
+
+.task-row:last-child {
+  border-bottom: 0;
+}
+
+.task-row strong,
+.task-row small {
+  display: block;
+}
+
+.task-row strong {
+  font-size: 12px;
+}
+
+.task-row small {
+  color: var(--muted);
+  font-size: 9px;
+  margin-top: 4px;
+}
+
+.task-row-link:hover,
+.project-row:hover {
+  background: var(--surface-hover);
+}
+
+.integration-empty {
+  display: grid;
+  gap: 12px;
+  max-width: 680px;
+}
+
+.integration-empty > svg {
+  color: var(--violet);
+}
+
+.logout-button {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  margin-left: auto;
+  padding: 5px;
+}
+
+.logout-button:hover {
+  color: var(--text);
+}
+
+.auth-switch {
+  font-size: 11px !important;
+  margin: 0 !important;
+}
+
+.auth-switch a {
+  color: #bdaeff;
+}
+
+.settings-note {
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 820px) {
+  .inline-form { grid-template-columns: 1fr; }
+  .form-wide { grid-column: auto; }
+  .task-row { grid-template-columns: 70px 1fr; }
+  .task-row > :nth-child(3),
+  .task-row > :nth-child(4) { justify-self: start; }
+}
