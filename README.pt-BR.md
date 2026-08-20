@@ -1,80 +1,70 @@
-# Synchub
+# SyncHub
 
-Central inteligente de desenvolvimento que conecta projetos, tarefas, equipe e GitHub em um
-único fluxo operacional. A versão 0.4.0 introduz o Sync Engine: commits e pull requests podem
-ser associados automaticamente a tarefas por chaves como `SYNC-12`.
+SyncHub é um projeto local de rastreabilidade de desenvolvimento que liga repositórios do GitHub, tarefas e histórico de entregas.
 
-## O que sincroniza nesta versão
+A ideia é conseguir olhar para uma tarefa e entender quais commits ou pull requests realmente fizeram parte daquela entrega. Chaves como `SYNC-12` podem ser encontradas no texto de commits/PRs e associadas ao trabalho correspondente.
 
-- repositórios do GitHub conectados a projetos;
-- eventos assinados de `push`, `pull_request` e workflows;
-- commits e pull requests ligados automaticamente às tarefas;
-- histórico de execuções, erros e último pulso de cada conexão;
-- atividades da entrega exibidas para toda a equipe;
-- reconciliação manual pelo botão **Sync now**.
+> Versão atual: `0.4.0`. O foco é o uso local; o projeto não é tratado como um SaaS em produção.
 
-Acesse **Sync center** na navegação lateral para acompanhar a rede.
+## O que funciona nesta versão
 
-## Inicialização em um clique
+- conexão de um repositório GitHub com um projeto;
+- recebimento de webhooks assinados de `push`, `pull_request` e workflows;
+- deduplicação das entregas recebidas;
+- associação de commits e pull requests a tarefas;
+- histórico de sincronizações e erros;
+- reconciliação manual de uma conexão.
 
-No Windows, extraia a pasta e execute apenas:
+## Inicialização local no Windows
 
-```text
-SYNCHUB.bat
+`SYNCHUB.bat` continua na raiz como o único atalho principal. Ele chama o fluxo de preparação/inicialização que fica em `scripts/oneclick.ps1`.
+
+Na primeira execução, esse fluxo pode preparar Node/npm, configuração local, banco SQLite e dependências antes de iniciar a API e a interface.
+
+Também é possível trabalhar direto pelos scripts npm:
+
+```powershell
+npm install
+npm run check
+npm run test
+npm run dev
 ```
 
-Na primeira execução, o mesmo arquivo:
+Endereços padrão:
 
-1. instala o Node.js LTS automaticamente quando ele não estiver presente;
-2. cria o ambiente local e segredos de sessão;
-3. instala os pacotes npm;
-4. cria o banco SQLite local;
-5. aplica o modelo do banco e cria os dados iniciais;
-6. executa verificações, testes e build;
-7. inicia API e interface;
-8. abre o navegador.
-
-Nas próximas execuções, `SYNCHUB.bat` apenas verifica se algo mudou e inicia o projeto. **Docker,
-PostgreSQL e Redis não são necessários para este modo local.**
-
-## Endereços
-
-- Interface: `http://localhost:3000`
+- interface: `http://localhost:3000`
 - API: `http://localhost:3333/api/v1`
 - Swagger: `http://localhost:3333/docs`
-
-Conta inicial:
-
-- e-mail: `demo@synchub.local`
-- senha: `Synchub123!`
-
-## Arquivos importantes
-
-- `SYNCHUB.bat`: único iniciador e instalador;
-- `data/synchub.db`: banco local, ignorado pelo Git;
-- `CRIAR_BACKUP_SYNCHUB.bat`: cria backup do banco, ambiente e código;
-- `RESTAURAR_BACKUP_SYNCHUB.bat`: restaura um backup;
-- `VERIFICAR_SYNCHUB.bat`: mostra o diagnóstico do ambiente.
 
 ## Estrutura
 
 ```text
-apps/api          API NestJS
-apps/web          interface Next.js
-packages/contracts validações e contratos compartilhados
-apps/api/prisma   modelo Prisma para SQLite local
-scripts           instalação, inicialização, backup e validação
+apps/api           API NestJS e Prisma
+apps/web           interface Next.js
+packages/contracts contratos Zod compartilhados
+scripts            inicialização, backup e verificações
+tests              testes do código-fonte
 ```
 
-## Desenvolvimento manual
+O modo local usa SQLite e não exige PostgreSQL ou Redis para começar.
 
-Após a primeira execução:
+## Utilitários do Windows
 
-```powershell
-npm run dev
-npm run check
-npm run test
-npm run build
-```
+Os atalhos de manutenção não ficam mais espalhados na raiz. Eles estão em `scripts/windows/`:
 
-Leia `STATUS.md` e `docs/HANDOFF.md` antes de retomar o próximo marco.
+- `backup.bat`
+- `restore.bat`
+- `release.bat`
+- `doctor.bat`
+
+Os scripts PowerShell correspondentes continuam em `scripts/`.
+
+## SyncHub e SincroHub
+
+São projetos diferentes apesar dos nomes parecidos.
+
+**SyncHub** trabalha com sincronização/rastreabilidade de desenvolvimento no GitHub. **SincroHub** é um projeto posterior de monitoramento operacional, telemetria e incidentes.
+
+## Mais detalhes
+
+Consulte `STATUS.md` para o estado atual da implementação e `docs/HANDOFF.md` para as anotações técnicas.
