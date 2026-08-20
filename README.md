@@ -1,45 +1,101 @@
-# Synchub
+# SyncHub
 
-A GitHub-first development synchronization and traceability platform built as a modular
-TypeScript monorepo. Version 0.4.0 connects repositories, delivery events and tasks through the
-Synchronization Network.
+SyncHub is a local development-traceability project built around GitHub repositories, tasks and delivery history.
 
-## Synchronization Network
+The part I care about most is connecting work items to what actually reached the repository. A task key mentioned in a commit or pull request can be associated with that delivery, while webhook runs keep the synchronization history visible instead of hiding it behind a background job.
 
-- connect a GitHub repository to a Synchub project;
-- process signed `push`, `pull_request` and workflow webhooks;
-- infer task keys such as `SYNC-12` from delivery text;
-- link commits and pull requests to the work they deliver;
-- inspect connection health, runs, errors and the last network pulse;
-- manually reconcile a connection from the Sync center.
+> Current version: `0.4.0`. The local flow is the main target; this is not a hosted SaaS product.
 
-## One-click local mode
+## What it does
 
-On Windows, extract the project and run only:
+- connects a GitHub repository to a SyncHub project;
+- receives signed `push`, `pull_request` and workflow webhooks;
+- deduplicates webhook deliveries;
+- finds task keys such as `SYNC-12` in delivery text;
+- links commits and pull requests to tasks;
+- stores synchronization runs and errors;
+- allows a connection to be reconciled manually when needed.
+
+## Main flow
 
 ```text
-SYNCHUB.bat
+GitHub event
+    ↓
+signed webhook
+    ↓
+validate + deduplicate
+    ↓
+find project / task references
+    ↓
+store delivery history
+    ↓
+show connection state and runs
 ```
 
-The first run installs Node.js when needed, installs npm dependencies, generates secure local
-configuration, creates the embedded SQLite database, seeds it, validates the source, builds the
-applications and starts the API and web interface. Later runs only validate the installation state
-and start Synchub.
+## Structure
 
-No Docker, PostgreSQL or Redis installation is required for the saved local foundation.
+```text
+apps/
+├── api/          # NestJS API and Prisma data layer
+└── web/          # Next.js interface
 
-- Web: `http://localhost:3000`
-- API: `http://localhost:3333/api/v1`
-- Swagger: `http://localhost:3333/docs`
-- Demo login: `demo@synchub.local` / `Synchub123!`
+packages/
+└── contracts/    # shared Zod contracts
 
-## Architecture
+scripts/          # setup, development, backup and checks
+tests/            # source-level tests
+```
 
-- `apps/api`: modular NestJS API;
-- `apps/web`: Next.js application;
-- `packages/contracts`: shared Zod contracts;
-- Prisma + embedded SQLite for the zero-configuration local foundation;
-- signed, deduplicated and task-aware GitHub webhook processing;
-- persistent synchronization state and run history.
+The local setup uses SQLite so the project can be opened without requiring PostgreSQL or Redis first.
 
-See `README.pt-BR.md`, `STATUS.md`, and `docs/HANDOFF.md`.
+## Stack
+
+| Part | Technology |
+|---|---|
+| API | NestJS + TypeScript |
+| Web | Next.js + TypeScript |
+| Database | Prisma + SQLite |
+| Validation | Zod |
+| Tests | Node Test Runner + workspace tests |
+
+## Running locally
+
+Requirements:
+
+- Node.js 22+
+- npm 10+
+
+On Windows, `SYNCHUB.bat` is kept as the single root shortcut for the local setup/start flow. The PowerShell scripts it calls live under `scripts/`.
+
+You can also work with the project directly:
+
+```bash
+npm install
+npm run check
+npm run test
+npm run dev
+```
+
+The web interface uses port `3000` and the API uses `3333` in the default local configuration.
+
+## Repository maintenance
+
+Backup, restore, diagnostics and source-snapshot helpers are under `scripts/windows/` instead of being separate launchers in the repository root.
+
+The source checks also keep application files from growing indefinitely; when a module starts owning unrelated behavior, I prefer splitting that responsibility before adding more code to it.
+
+## SyncHub vs. SincroHub
+
+The names are close, but they are different projects.
+
+**SyncHub** is about software-development synchronization and traceability around GitHub. **SincroHub** is a newer operations/monitoring project built around telemetry and incidents.
+
+## More information
+
+- [`README.pt-BR.md`](README.pt-BR.md) — Portuguese notes;
+- [`STATUS.md`](STATUS.md) — current implementation status;
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) — technical handoff notes.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
