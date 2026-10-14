@@ -1,27 +1,12 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { parseInstallationRepositoryPage } from './github-repository-discovery.js';
+import type { InstallationRepository } from './github-repository-discovery.js';
 
-export interface InstallationRepository {
-  repositoryId: number;
-  owner: string;
-  name: string;
-  fullName: string;
-  defaultBranch: string;
-  private: boolean;
-}
+export type { InstallationRepository } from './github-repository-discovery.js';
 
-interface GitHubRepositoryResponse {
-  id: number;
-  name: string;
-  full_name: string;
-  default_branch: string;
-  private: boolean;
-  owner: { login: string };
-}
-
-interface InstallationRepositoriesResponse {
-  repositories?: GitHubRepositoryResponse[];
-}
+const MAX_DISCOVERY_PAGES = 100;
+const DISCOVERY_TIMEOUT_MS = 10_000;
 
 @Injectable()
 export class GitHubAppClient {
@@ -37,19 +22,26 @@ export class GitHubAppClient {
 
     const apiBaseUrl = this.config.get<string>('GITHUB_API_URL') ?? 'https://api.github.com';
     const repositories: InstallationRepository[] = [];
+    const seenRepositoryIds = new Set<number>();
 
-    for (let page = 1; ; page += 1) {
-      const response = await fetch(
-        `${apiBaseUrl}/installation/repositories?per_page=100&page=${page}`,
-        {
-          headers: {
-            Accept: 'application/vnd.github+json',
-            Authorization: `Bearer ${installationToken}`,
-            'X-GitHub-Api-Version': '2022-11-28',
-            'User-Agent': 'SyncHub',
+    for (let page = 1; page <= MAX_DISCOVERY_PAGES; page += 1) {
+      let response: Response;
+      try {
+        response = await fetch(
+          `${apiBaseUrl}/installation/repositories?per_page=100&page=${page}`,
+          {
+            headers: {
+              Accept: 'application/vnd.github+json',
+              Authorization: `Bearer ${installationToken}`,
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'SyncHub',
+            },
+            signal: AbortSignal.timeout(DISCOVERY_TIMEOUT_MS),
           },
-        },
-      );
+        );
+      } catch {
+        throw new ServiceUnavailableException('GitHub repository discovery request failed');
+      }
 
       if (!response.ok) {
         throw new ServiceUnavailableException(
@@ -57,24 +49,23 @@ export class GitHubAppClient {
         );
       }
 
-      const payload = (await response.json()) as InstallationRepositoriesResponse;
-      const pageRepositories = payload.repositories ?? [];
-      repositories.push(...pageRepositories.map(normalizeRepository));
+      let pageRepositories: InstallationRepository[];
+      try {
+        pageRepositories = parseInstallationRepositoryPage(await response.json());
+      } catch {
+        throw new ServiceUnavailableException('GitHub repository discovery returned an invalid response');
+      }
 
-      if (pageRepositories.length < 100) break;
+      for (const repository of pageRepositories) {
+        if (!seenRepositoryIds.has(repository.repositoryId)) {
+          seenRepositoryIds.add(repository.repositoryId);
+          repositories.push(repository);
+        }
+      }
+
+      if (pageRepositories.length < 100) return repositories;
     }
 
-    return repositories;
+    throw new ServiceUnavailableException('GitHub repository discovery exceeded its page limit');
   }
-}
-
-function normalizeRepository(repository: GitHubRepositoryResponse): InstallationRepository {
-  return {
-    repositoryId: repository.id,
-    owner: repository.owner.login,
-    name: repository.name,
-    fullName: repository.full_name,
-    defaultBranch: repository.default_branch,
-    private: repository.private,
-  };
 }
