@@ -23,6 +23,7 @@ export class GitHubAppClient {
     const apiBaseUrl = this.config.get<string>('GITHUB_API_URL') ?? 'https://api.github.com';
     const repositories: InstallationRepository[] = [];
     const seenRepositoryIds = new Set<number>();
+    let expectedCount: number | undefined;
 
     for (let page = 1; page <= MAX_DISCOVERY_PAGES; page += 1) {
       let response: Response;
@@ -51,7 +52,19 @@ export class GitHubAppClient {
 
       let pageRepositories: InstallationRepository[];
       try {
-        pageRepositories = parseInstallationRepositoryPage(await response.json());
+        const payload: unknown = await response.json();
+        pageRepositories = parseInstallationRepositoryPage(payload);
+        if (!payload || typeof payload !== 'object' || !('total_count' in payload)) {
+          throw new Error('Missing repository count');
+        }
+        const count = payload.total_count;
+        if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
+          throw new Error('Invalid repository count');
+        }
+        if (expectedCount !== undefined && expectedCount !== count) {
+          throw new Error('Repository count changed during discovery');
+        }
+        expectedCount = count;
       } catch {
         throw new ServiceUnavailableException('GitHub repository discovery returned an invalid response');
       }
@@ -63,7 +76,10 @@ export class GitHubAppClient {
         }
       }
 
-      if (pageRepositories.length < 100) return repositories;
+      if (repositories.length === expectedCount) return repositories;
+      if (pageRepositories.length < 100) {
+        throw new ServiceUnavailableException('GitHub repository discovery returned an incomplete result');
+      }
     }
 
     throw new ServiceUnavailableException('GitHub repository discovery exceeded its page limit');

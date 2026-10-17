@@ -22,6 +22,7 @@ test('GitHubAppClient normalizes installation repositories', async (t) => {
 
     return new Response(
       JSON.stringify({
+        total_count: 1,
         repositories: [
           {
             id: 42,
